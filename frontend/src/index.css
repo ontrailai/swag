@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-swag-dark text-swag-skull-white font-body antialiased;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  /* Swag Card Component */
+  .swag-card {
+    @apply bg-gradient-to-br from-swag-dark-tertiary to-swag-dark-secondary
+           border-2 border-swag-neon-green/30 rounded-2xl p-6
+           shadow-lg hover:shadow-neon-green
+           transition-all duration-300 hover:-translate-y-1;
+  }
+
+  /* Swag Button Component */
+  .swag-btn {
+    @apply bg-gradient-to-r from-swag-neon-blue to-swag-neon-green
+           text-swag-dark font-bold py-3 px-6 rounded-xl
+           border-2 border-swag-gold
+           shadow-lg hover:shadow-neon-gold
+           transition-all duration-300 hover:scale-105
+           uppercase tracking-wide;
+  }
+
+  .swag-btn-secondary {
+    @apply bg-swag-dark-tertiary text-swag-neon-green
+           border-2 border-swag-neon-green/50
+           py-3 px-6 rounded-xl font-bold
+           hover:border-swag-neon-green hover:shadow-neon-green
+           transition-all duration-300;
+  }
+
+  /* Upload Zone */
+  .upload-zone {
+    @apply bg-gradient-to-br from-swag-dark-tertiary to-swag-dark-secondary
+           border-4 border-dashed border-swag-neon-green/50
+           rounded-3xl p-12 text-center
+           cursor-pointer transition-all duration-300
+           hover:border-swag-neon-green hover:shadow-neon-green
+           animate-pulse-glow;
+  }
+
+  /* Stat Card */
+  .stat-card {
+    @apply bg-gradient-to-br from-swag-dark-tertiary to-swag-dark
+           border-2 border-swag-neon-blue/50 rounded-2xl p-6
+           text-center shadow-lg hover:shadow-neon-blue
+           transition-all duration-300 hover:scale-105;
+  }
+
+  .stat-value {
+    @apply text-5xl font-black bg-gradient-to-r from-swag-neon-green to-swag-neon-blue
+           bg-clip-text text-transparent;
+  }
+
+  .stat-label {
+    @apply text-sm text-swag-skull-white/70 uppercase tracking-wide font-semibold;
+  }
+
+  /* Input Fields */
+  .swag-input {
+    @apply bg-swag-dark-tertiary text-swag-skull-white
+           border-2 border-swag-neon-green/30 rounded-lg px-4 py-2
+           focus:border-swag-neon-green focus:shadow-neon-green
+           transition-all duration-300 outline-none;
+  }
+
+  /* Progress Bar */
+  .swag-progress-bar {
+    @apply w-full h-4 bg-swag-dark-tertiary rounded-full overflow-hidden
+           border border-swag-neon-green/30;
+  }
+
+  .swag-progress-fill {
+    @apply h-full bg-gradient-to-r from-swag-neon-green to-swag-neon-blue
+           shadow-neon-green transition-all duration-500;
+  }
+
+  /* Variance Flags */
+  .variance-green {
+    @apply text-swag-neon-green;
+  }
+
+  .variance-yellow {
+    @apply text-yellow-400;
+  }
+
+  .variance-red {
+    @apply text-red-500;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    @apply fixed left-0 top-0 h-screen w-64
+           bg-gradient-to-b from-swag-dark-secondary to-swag-dark
+           border-r-2 border-swag-neon-green/20
+           p-6 space-y-6;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg
+           text-swag-skull-white/70 hover:text-swag-neon-green
+           hover:bg-swag-neon-green/10
+           transition-all duration-300 cursor-pointer;
+  }
+
+  .sidebar-link-active {
+    @apply bg-swag-neon-green/20 text-swag-neon-green
+           border-l-4 border-swag-neon-green;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    @apply w-3;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-swag-dark rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-swag-neon-green/50 rounded-full hover:bg-swag-neon-green;
+  }
+
+  /* Animations */
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .gradient-animate {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+}

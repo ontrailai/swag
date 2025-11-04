@@ -1,0 +1,20 @@
+# Swag Golf Pricing Intelligence Tool - Dependencies
+
+# Azure AI Services
+azure-ai-formrecognizer==3.3.2
+
+# Google Sheets API
+google-auth==2.25.2
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.111.0
+
+# Data Processing
+pandas==2.1.4
+openpyxl==3.1.2
+
+# UI Framework
+streamlit==1.51.0
+
+# Standard library (included with Python)
+# json, os, shutil, datetime, pathlib

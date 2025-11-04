@@ -1,0 +1,22 @@
+{
+  "azure": {
+    "endpoint": "YOUR_AZURE_ENDPOINT_HERE",
+    "key": "YOUR_AZURE_KEY_HERE"
+  },
+  "google_sheets": {
+    "sheet_id": "YOUR_GOOGLE_SHEET_ID_HERE",
+    "credentials_file": "credentials.json",
+    "token_file": "token.json",
+    "sheet_name": "Pricing Data"
+  },
+  "paths": {
+    "invoices_new": "Invoices/new",
+    "invoices_processed": "Invoices/processed",
+    "output_excel": "Output/pricing_master.xlsx",
+    "log_file": "Output/summary_log.txt"
+  },
+  "variance_thresholds": {
+    "green": 3.0,
+    "yellow": 10.0
+  }
+}
