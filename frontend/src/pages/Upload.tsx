@@ -4,7 +4,7 @@ import { uploadFiles, startProcessing, getProcessingStatus } from '../lib/api';
 import { UploadZone } from '../components/UploadZone';
 import { ProgressCard } from '../components/ProgressCard';
 import { motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 export const Upload: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -56,10 +56,10 @@ export const Upload: React.FC = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-swag-neon-green to-swag-neon-blue bg-clip-text mb-2">
-          📄 Upload & Process
+        <h1 className="text-3xl font-display font-black uppercase tracking-wider bg-gradient-to-r from-swag-neon-green to-swag-neon-blue bg-clip-text text-transparent mb-2">
+          Upload & Process
         </h1>
-        <p className="text-swag-skull-white/70">
+        <p className="text-swag-skull-white/70 font-body">
           Upload invoice PDFs for AI-powered pricing analysis
         </p>
       </motion.div>
@@ -81,12 +81,12 @@ export const Upload: React.FC = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Zap className="w-6 h-6" />
+          <Play className="w-6 h-6 fill-current" />
           {uploadMutation.isPending
             ? 'Uploading...'
             : processMutation.isPending
             ? 'Starting...'
-            : '⚡ RUN ANALYSIS →'}
+            : 'Run Analysis'}
         </motion.button>
       )}
 

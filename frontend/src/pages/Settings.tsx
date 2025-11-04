@@ -42,10 +42,10 @@ export const Settings: React.FC = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-swag-gold to-swag-neon-blue bg-clip-text mb-2">
-          ⚙️ Configuration Settings
+        <h1 className="text-3xl font-display font-black uppercase tracking-wider bg-gradient-to-r from-swag-gold to-swag-neon-blue bg-clip-text text-transparent mb-2">
+          Configuration Settings
         </h1>
-        <p className="text-swag-skull-white/70">
+        <p className="text-swag-skull-white/70 font-body">
           Manage Azure, Google Sheets, and variance thresholds
         </p>
       </motion.div>

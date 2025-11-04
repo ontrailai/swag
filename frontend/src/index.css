@@ -13,10 +13,24 @@
     @apply bg-swag-dark text-swag-skull-white font-body antialiased;
     margin: 0;
     min-height: 100vh;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+    line-height: 1.25;
+  }
+
+  /* Global Container Padding */
+  .container {
+    @apply max-w-screen-xl mx-auto;
+    padding: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 16px;
+    }
   }
 }
 
@@ -31,20 +45,26 @@
 
   /* Swag Button Component */
   .swag-btn {
-    @apply bg-gradient-to-r from-swag-neon-blue to-swag-neon-green
-           text-swag-dark font-bold py-3 px-6 rounded-xl
-           border-2 border-swag-gold
+    @apply bg-gradient-to-r from-swag-neon-green to-swag-gold
+           text-swag-dark font-bold py-3 px-6 rounded-2xl
+           border-2 border-swag-gold/50
            shadow-lg hover:shadow-neon-gold
            transition-all duration-300 hover:scale-105
-           uppercase tracking-wide;
+           uppercase tracking-wider;
+    font-weight: 600;
   }
 
   .swag-btn-secondary {
     @apply bg-swag-dark-tertiary text-swag-neon-green
            border-2 border-swag-neon-green/50
-           py-3 px-6 rounded-xl font-bold
+           py-3 px-6 rounded-2xl font-bold
            hover:border-swag-neon-green hover:shadow-neon-green
            transition-all duration-300;
+    font-weight: 600;
+  }
+
+  .swag-btn-secondary:hover {
+    transform: scale(1.02);
   }
 
   /* Upload Zone */
@@ -82,15 +102,17 @@
            transition-all duration-300 outline-none;
   }
 
-  /* Progress Bar */
+  /* Progress Bar with Gradient Animation */
   .swag-progress-bar {
     @apply w-full h-4 bg-swag-dark-tertiary rounded-full overflow-hidden
            border border-swag-neon-green/30;
   }
 
   .swag-progress-fill {
-    @apply h-full bg-gradient-to-r from-swag-neon-green to-swag-neon-blue
-           shadow-neon-green transition-all duration-500;
+    @apply h-full shadow-neon-green transition-all duration-500;
+    background: linear-gradient(90deg, #32FF6A, #FF3CF1, #32FF6A);
+    background-size: 200% 100%;
+    animation: gradient-shift 3s ease infinite;
   }
 
   /* Variance Flags */

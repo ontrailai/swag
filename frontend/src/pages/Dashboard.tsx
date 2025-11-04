@@ -4,6 +4,7 @@ import { getDashboardStats, getVarianceSummary } from '../lib/api';
 import { motion } from 'framer-motion';
 import { FileText, AlertTriangle, DollarSign, TrendingUp } from 'lucide-react';
 import { VarianceTable } from '../components/VarianceTable';
+import swagLogo from '../assets/swag-logo.svg';
 
 export const Dashboard: React.FC = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -35,11 +36,17 @@ export const Dashboard: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="relative"
       >
-        <h1 className="text-4xl font-black text-transparent bg-gradient-to-r from-swag-neon-green to-swag-neon-blue bg-clip-text mb-2">
-          📊 Performance Dashboard
+        {/* Background watermark */}
+        <div className="absolute -right-8 -top-8 opacity-5 pointer-events-none">
+          <img src={swagLogo} alt="" className="w-48 h-48" />
+        </div>
+
+        <h1 className="text-3xl font-display font-black uppercase tracking-wider bg-gradient-to-r from-swag-neon-green to-swag-neon-blue bg-clip-text text-transparent mb-2 relative z-10">
+          Performance Dashboard
         </h1>
-        <p className="text-swag-skull-white/70">
+        <p className="text-swag-skull-white/70 font-body relative z-10">
           Real-time analytics and variance monitoring
         </p>
       </motion.div>
@@ -47,47 +54,55 @@ export const Dashboard: React.FC = () => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div
-          className="stat-card"
+          className="stat-card relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <FileText className="w-12 h-12 mx-auto mb-3 text-swag-neon-blue" />
-          <p className="stat-label">Files Processed</p>
-          <p className="stat-value">{stats?.files_processed || 0}</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-swag-neon-blue/10 to-transparent" />
+          <FileText className="w-12 h-12 mx-auto mb-3 text-swag-neon-blue relative z-10" />
+          <p className="stat-label relative z-10">Files Processed</p>
+          <p className="stat-value relative z-10">{stats?.files_processed || 0}</p>
         </motion.div>
 
         <motion.div
-          className="stat-card"
+          className="stat-card relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-yellow-400" />
-          <p className="stat-label">Variance Alerts</p>
-          <p className="stat-value">{stats?.variance_alerts || 0}</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-transparent" />
+          <AlertTriangle className="w-12 h-12 mx-auto mb-3 text-yellow-400 relative z-10" />
+          <p className="stat-label relative z-10">Variance Alerts</p>
+          <p className="stat-value relative z-10">{stats?.variance_alerts || 0}</p>
         </motion.div>
 
         <motion.div
-          className="stat-card"
+          className="stat-card relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <DollarSign className="w-12 h-12 mx-auto mb-3 text-swag-gold" />
-          <p className="stat-label">Impact Cost</p>
-          <p className="stat-value">${stats?.impact_cost.toFixed(2) || '0.00'}</p>
+          <div className="absolute inset-0 bg-gradient-to-br from-swag-gold/10 to-transparent" />
+          <DollarSign className="w-12 h-12 mx-auto mb-3 text-swag-gold relative z-10" />
+          <p className="stat-label relative z-10">Impact Cost</p>
+          <p className="stat-value relative z-10">${stats?.impact_cost.toFixed(2) || '0.00'}</p>
         </motion.div>
 
         <motion.div
-          className="stat-card"
+          className="stat-card relative overflow-hidden"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
+          whileHover={{ scale: 1.05 }}
         >
-          <TrendingUp className="w-12 h-12 mx-auto mb-3 text-swag-neon-green" />
-          <p className="stat-label">Variance Breakdown</p>
-          <div className="flex justify-center gap-4 mt-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-swag-neon-green/10 to-transparent" />
+          <TrendingUp className="w-12 h-12 mx-auto mb-3 text-swag-neon-green relative z-10" />
+          <p className="stat-label relative z-10">Variance Breakdown</p>
+          <div className="flex justify-center gap-4 mt-2 relative z-10">
             <span className="text-swag-neon-green text-xl font-bold">
               🟢 {stats?.variance_counts.green || 0}
             </span>
@@ -106,10 +121,19 @@ export const Dashboard: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+        className="relative"
       >
-        <h2 className="text-2xl font-bold text-swag-neon-green mb-4">
-          📋 Recent Activity (Last 10 Items)
+        {/* Background watermark */}
+        <div className="absolute -left-8 top-20 opacity-5 pointer-events-none">
+          <img src={swagLogo} alt="" className="w-64 h-64" />
+        </div>
+
+        <h2 className="text-xl font-display font-bold uppercase tracking-wider text-swag-neon-green mb-4 relative z-10">
+          Recent Activity
         </h2>
+        <p className="text-sm text-swag-skull-white/50 mb-4 font-body relative z-10">
+          Last 10 processed items
+        </p>
         <VarianceTable data={variance?.recent_data || []} />
       </motion.div>
     </div>

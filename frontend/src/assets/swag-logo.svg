@@ -1,0 +1,47 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Swag Golf Skull Logo -->
+  <defs>
+    <linearGradient id="swagGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#32FF6A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF3CF1;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Skull Base -->
+  <ellipse cx="100" cy="110" rx="60" ry="70" fill="#0F0F0F" stroke="url(#swagGradient)" stroke-width="3" filter="url(#glow)"/>
+
+  <!-- Eye Sockets -->
+  <ellipse cx="80" cy="95" rx="12" ry="18" fill="#32FF6A" opacity="0.9"/>
+  <ellipse cx="120" cy="95" rx="12" ry="18" fill="#32FF6A" opacity="0.9"/>
+
+  <!-- Nose Cavity -->
+  <path d="M 95 115 L 100 125 L 105 115 Z" fill="#32FF6A" opacity="0.8"/>
+
+  <!-- Teeth -->
+  <rect x="70" y="140" width="12" height="18" rx="2" fill="#F8F8F8"/>
+  <rect x="85" y="140" width="12" height="18" rx="2" fill="#F8F8F8"/>
+  <rect x="103" y="140" width="12" height="18" rx="2" fill="#F8F8F8"/>
+  <rect x="118" y="140" width="12" height="18" rx="2" fill="#F8F8F8"/>
+
+  <!-- Golf Ball Detail -->
+  <circle cx="160" cy="60" r="20" fill="#F8F8F8" opacity="0.9"/>
+  <circle cx="154" cy="55" r="2" fill="#0F0F0F"/>
+  <circle cx="166" cy="55" r="2" fill="#0F0F0F"/>
+  <circle cx="160" cy="62" r="2" fill="#0F0F0F"/>
+  <circle cx="154" cy="65" r="2" fill="#0F0F0F"/>
+  <circle cx="166" cy="65" r="2" fill="#0F0F0F"/>
+
+  <!-- SWAG Text -->
+  <text x="100" y="30" font-family="Orbitron, sans-serif" font-size="24" font-weight="900" fill="url(#swagGradient)" text-anchor="middle" letter-spacing="4">SWAG</text>
+
+  <!-- Accent Lines -->
+  <line x1="30" y1="100" x2="50" y2="100" stroke="#32FF6A" stroke-width="2" opacity="0.6"/>
+  <line x1="150" y1="100" x2="170" y2="100" stroke="#FF3CF1" stroke-width="2" opacity="0.6"/>
+</svg>

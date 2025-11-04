@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import swagLogo from '../assets/swag-logo.svg';
 
 interface UploadZoneProps {
   onFilesSelected: (files: FileList) => void;
@@ -55,25 +56,48 @@ export const UploadZone: React.FC<UploadZoneProps> = ({ onFilesSelected, disable
   return (
     <div className="space-y-4">
       <motion.div
-        className={`upload-zone ${dragActive ? 'border-swag-neon-green shadow-neon-green' : ''}`}
+        className={`upload-zone relative overflow-hidden ${dragActive ? 'border-swag-neon-green shadow-neon-green' : ''} ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
         onClick={() => !disabled && inputRef.current?.click()}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={!disabled ? { scale: 1.02 } : {}}
+        whileTap={!disabled ? { scale: 0.98 } : {}}
       >
-        <Upload className="w-16 h-16 mx-auto mb-4 text-swag-neon-green" />
-        <h3 className="text-2xl font-bold text-swag-neon-green mb-2">
-          Drag & Drop PDFs Here
-        </h3>
-        <p className="text-swag-skull-white/70">
-          or click to browse your files
-        </p>
-        <p className="text-sm text-swag-skull-white/50 mt-2">
-          Supports: .pdf files only
-        </p>
+        {/* Background logo watermark */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-5">
+          <img src={swagLogo} alt="" className="w-64 h-64" />
+        </div>
+
+        <div className="relative z-10">
+          <motion.div
+            animate={dragActive ? {
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            <Upload className="w-16 h-16 mx-auto mb-4 text-swag-neon-green drop-shadow-lg" />
+          </motion.div>
+
+          <h3 className="text-2xl font-display font-bold uppercase tracking-wider text-swag-skull-white mb-2">
+            Drop Invoice PDFs
+          </h3>
+
+          <p className="text-swag-skull-white/70 mb-4 font-body">
+            or click to browse files
+          </p>
+
+          <div className="flex items-center justify-center gap-2 text-sm text-swag-gold">
+            <div className="w-12 h-px bg-gradient-to-r from-transparent via-swag-gold to-transparent" />
+            <span className="font-semibold">Multiple files supported</span>
+            <div className="w-12 h-px bg-gradient-to-r from-transparent via-swag-gold to-transparent" />
+          </div>
+        </div>
+
         <input
           ref={inputRef}
           type="file"
