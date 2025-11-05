@@ -182,7 +182,7 @@ async def run_processing_job(job_id: str, pdf_files: List[Path]):
 
 # ==================== API Endpoints ====================
 
-@app.get("/")
+@app.get("/api")
 async def root():
     """API root endpoint"""
     return {
@@ -465,8 +465,7 @@ async def get_dashboard_stats():
 
 
 # Serve React build in production
-# Uncomment when React build is ready
-# app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
 
 
 if __name__ == "__main__":

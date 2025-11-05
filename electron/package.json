@@ -1,0 +1,121 @@
+{
+  "name": "swag-pricing-intelligence",
+  "productName": "Swag Pricing Intelligence",
+  "version": "1.0.0",
+  "description": "AI-powered pricing and invoice intelligence tool for Swag Golf.",
+  "main": "main.js",
+  "author": "Swag Golf",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:all": "electron-builder --mac --win",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "wait-on": "^7.2.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.swaggolf.pricingtool",
+    "productName": "Swag Pricing Intelligence",
+    "copyright": "Copyright © 2025 Swag Golf",
+    "directories": {
+      "output": "dist_electron",
+      "buildResources": "."
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "icon.png",
+      {
+        "from": "../frontend/dist",
+        "to": "frontend/dist",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/__pycache__",
+          "!**/*.pyc",
+          "!**/.DS_Store"
+        ]
+      },
+      {
+        "from": "../src",
+        "to": "src",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "..",
+        "to": ".",
+        "filter": [
+          "config.template.json",
+          "requirements.txt"
+        ]
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "../Invoices",
+        "to": "Invoices",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "target": "dmg",
+      "icon": "icon.icns",
+      "category": "public.app-category.business",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "title": "Swag Pricing Intelligence",
+      "background": null,
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.png",
+      "uninstallerIcon": "icon.png",
+      "installerHeader": "icon.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Swag Pricing Intelligence"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "icon.png",
+      "category": "Office"
+    }
+  }
+}

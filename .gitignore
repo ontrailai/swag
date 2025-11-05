@@ -56,3 +56,11 @@ Invoices/processed/*.pdf
 # Environment Variables
 .env
 .env.local
+
+# Electron
+node_modules/
+dist_electron/
+*.dmg
+*.exe
+*.AppImage
+*.deb
