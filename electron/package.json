@@ -25,6 +25,7 @@
     "appId": "com.swaggolf.pricingtool",
     "productName": "Swag Pricing Intelligence",
     "copyright": "Copyright © 2025 Swag Golf",
+    "asar": false,
     "directories": {
       "output": "dist_electron",
       "buildResources": "."
@@ -58,7 +59,9 @@
         "to": ".",
         "filter": [
           "config.template.json",
-          "requirements.txt"
+          "requirements.txt",
+          "main.py",
+          "app.py"
         ]
       }
     ],
