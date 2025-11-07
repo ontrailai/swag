@@ -37,7 +37,9 @@
       {
         "from": "../frontend/dist",
         "to": "frontend/dist",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../backend",
@@ -52,7 +54,9 @@
       {
         "from": "../src",
         "to": "src",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "..",
@@ -69,7 +73,9 @@
       {
         "from": "../Invoices",
         "to": "Invoices",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "../config.json",
@@ -128,7 +134,10 @@
       "shortcutName": "Swag Pricing Intelligence"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "icon": "icon.png",
       "category": "Office"
     }
