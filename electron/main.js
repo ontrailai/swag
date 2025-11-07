@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const waitOn = require('wait-on');
 const http = require('http');
+const fs = require('fs');
 
 // Set app name
 app.name = "Swag Pricing Intelligence";
@@ -30,22 +31,117 @@ function checkBackendHealth() {
   });
 }
 
+// Set up user data directory with config files
+function setupDataDirectory() {
+  console.log('Setting up data directory...');
+
+  // Get user data path
+  const userDataPath = app.getPath('userData');
+  console.log('User data path:', userDataPath);
+
+  // Create userData directory if it doesn't exist
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
+
+  // Only copy files if running packaged version
+  if (app.isPackaged) {
+    const resourcesPath = process.resourcesPath;
+
+    // Copy config files if they don't exist
+    const filesToCopy = ['config.json', 'credentials.json', 'token.json'];
+    filesToCopy.forEach(file => {
+      const source = path.join(resourcesPath, file);
+      const dest = path.join(userDataPath, file);
+
+      if (fs.existsSync(source) && !fs.existsSync(dest)) {
+        console.log(`Copying ${file} to user data directory`);
+        fs.copyFileSync(source, dest);
+      }
+    });
+
+    // Create Invoices directory structure
+    const invoicesPath = path.join(userDataPath, 'Invoices');
+    const invoicesNew = path.join(invoicesPath, 'new');
+    const invoicesProcessed = path.join(invoicesPath, 'processed');
+
+    if (!fs.existsSync(invoicesNew)) {
+      fs.mkdirSync(invoicesNew, { recursive: true });
+      console.log('Created Invoices/new directory');
+    }
+
+    if (!fs.existsSync(invoicesProcessed)) {
+      fs.mkdirSync(invoicesProcessed, { recursive: true });
+      console.log('Created Invoices/processed directory');
+    }
+
+    // Copy existing invoices if available
+    const sourceInvoices = path.join(resourcesPath, 'Invoices');
+    if (fs.existsSync(sourceInvoices) && fs.existsSync(invoicesPath)) {
+      // Copy processed invoices
+      const sourceProcessed = path.join(sourceInvoices, 'processed');
+      if (fs.existsSync(sourceProcessed)) {
+        const files = fs.readdirSync(sourceProcessed);
+        files.forEach(file => {
+          const src = path.join(sourceProcessed, file);
+          const dst = path.join(invoicesProcessed, file);
+          if (!fs.existsSync(dst) && fs.statSync(src).isFile()) {
+            fs.copyFileSync(src, dst);
+          }
+        });
+        console.log(`Copied ${files.length} processed invoices`);
+      }
+    }
+  }
+
+  return userDataPath;
+}
+
 // Start FastAPI backend
 async function startBackend() {
   return new Promise((resolve, reject) => {
     console.log('Starting FastAPI backend...');
 
-    const projectRoot = path.join(__dirname, '..');
+    // Determine project root - different for packaged vs development
+    const projectRoot = app.isPackaged
+      ? path.join(process.resourcesPath, 'app')
+      : path.join(__dirname, '..');
+
+    // For packaged app, use userData as working directory
+    const workingDir = app.isPackaged ? app.getPath('userData') : projectRoot;
+
+    console.log('Project root:', projectRoot);
+    console.log('Working directory:', workingDir);
+
     const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
 
-    backendProcess = spawn(pythonPath, [
-      '-m', 'uvicorn',
-      'backend.main:app',
-      '--host', '0.0.0.0',
-      '--port', BACKEND_PORT.toString()
-    ], {
-      cwd: projectRoot,
-      stdio: ['ignore', 'pipe', 'pipe']
+    // Set PYTHONPATH to include project root modules
+    const env = { ...process.env };
+    if (app.isPackaged) {
+      // For packaged app, add both project root and src to PYTHONPATH
+      env.PYTHONPATH = `${projectRoot}:${path.join(projectRoot, 'src')}${env.PYTHONPATH ? ':' + env.PYTHONPATH : ''}`;
+    } else {
+      env.PYTHONPATH = projectRoot;
+    }
+
+    // For packaged app, we need to change to project root first, then back to userData
+    // This ensures Python can find the modules
+    const uvicornArgs = app.isPackaged
+      ? [
+          '-c',
+          `import sys; sys.path.insert(0, '${projectRoot}'); sys.path.insert(0, '${path.join(projectRoot, 'src')}'); import os; os.chdir('${workingDir}'); from uvicorn import run; run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})`
+        ]
+      : [
+          '-m', 'uvicorn',
+          'backend.main:app',
+          '--host', '0.0.0.0',
+          '--port', BACKEND_PORT.toString()
+        ];
+
+    backendProcess = spawn(pythonPath, uvicornArgs, {
+      cwd: app.isPackaged ? projectRoot : workingDir,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: env
     });
 
     backendProcess.stdout.on('data', (data) => {
@@ -267,6 +363,9 @@ app.whenReady().then(async () => {
 
     // Show splash screen
     createSplashScreen();
+
+    // Set up data directory (copies config files for packaged app)
+    setupDataDirectory();
 
     // Start backend
     await startBackend();

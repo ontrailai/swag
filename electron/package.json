@@ -70,6 +70,18 @@
         "from": "../Invoices",
         "to": "Invoices",
         "filter": ["**/*"]
+      },
+      {
+        "from": "../config.json",
+        "to": "config.json"
+      },
+      {
+        "from": "../credentials.json",
+        "to": "credentials.json"
+      },
+      {
+        "from": "../token.json",
+        "to": "token.json"
       }
     ],
     "mac": {

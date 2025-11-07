@@ -162,6 +162,12 @@ async def run_processing_job(job_id: str, pdf_files: List[Path]):
         # Run the pipeline
         results = run_pipeline()
 
+        # Add Google Sheets URL to results
+        config = load_config_json()
+        sheet_id = config.get('google_sheets', {}).get('sheet_id', '')
+        if sheet_id:
+            results['sheet_url'] = f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit"
+
         # Immediately update to show completion
         processing_jobs[job_id]['progress'] = 0.95
         processing_jobs[job_id]['message'] = 'Finalizing results...'
@@ -465,7 +471,20 @@ async def get_dashboard_stats():
 
 
 # Serve React build in production
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+# Check if running in packaged Electron app
+frontend_dist_path = Path("frontend/dist")
+if not frontend_dist_path.exists():
+    # Running from packaged app - look in parent directories
+    possible_paths = [
+        Path(__file__).parent.parent / "frontend" / "dist",  # Development
+        Path("/Applications/Swag Pricing Intelligence.app/Contents/Resources/app/frontend/dist"),  # Packaged macOS
+    ]
+    for p in possible_paths:
+        if p.exists():
+            frontend_dist_path = p
+            break
+
+app.mount("/", StaticFiles(directory=str(frontend_dist_path), html=True), name="frontend")
 
 
 if __name__ == "__main__":
