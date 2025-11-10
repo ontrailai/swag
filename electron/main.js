@@ -229,15 +229,8 @@ run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
       console.log('Created startup script:', startupScriptPath);
       logStream.write(`Created startup script: ${startupScriptPath}\n`);
 
-      // On Windows with shell, pass entire command as string to handle spaces
-      if (process.platform === 'win32') {
-        // Pass the entire command as a single string with shell: true
-        const command = `"${pythonPath}" "${startupScriptPath}"`;
-        uvicornArgs = ['/c', command];
-        pythonPath = 'cmd.exe';
-      } else {
-        uvicornArgs = [startupScriptPath];
-      }
+      // Simple direct approach - no shell, just pass path as argument
+      uvicornArgs = [startupScriptPath];
     } else {
       uvicornArgs = [
         '-m', 'uvicorn',
@@ -258,6 +251,7 @@ run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
       cwd: app.isPackaged ? projectRoot : workingDir,
       stdio: ['ignore', 'pipe', 'pipe'],
       env: env
+      // NO shell - Node.js handles paths with spaces correctly without it
     });
 
     backendProcess.stdout.on('data', (data) => {
