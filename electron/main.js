@@ -113,7 +113,18 @@ async function startBackend() {
     console.log('Project root:', projectRoot);
     console.log('Working directory:', workingDir);
 
-    const pythonPath = '/Users/ryanwatson/.pyenv/shims/python3';
+    // Determine Python path based on platform
+    let pythonPath;
+    if (process.platform === 'win32') {
+      // On Windows, try common Python locations
+      pythonPath = 'python'; // Will use system PATH
+    } else if (process.platform === 'darwin') {
+      // On macOS
+      pythonPath = '/Users/ryanwatson/.pyenv/shims/python3';
+    } else {
+      // On Linux
+      pythonPath = 'python3';
+    }
 
     // Set PYTHONPATH to include project root modules
     const env = { ...process.env };
