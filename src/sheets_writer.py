@@ -128,7 +128,7 @@ class SheetsWriter:
 
             # Save credentials for next run
             try:
-                with open(self.token_file, 'w') as token:
+                with open(self.token_file, 'w', encoding='utf-8') as token:
                     token.write(creds.to_json())
                 print(f"💾 Authentication token saved to {self.token_file}")
             except Exception as e:

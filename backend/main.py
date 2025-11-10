@@ -83,7 +83,7 @@ def load_config_json() -> Dict:
     """Load configuration from config.json"""
     config_path = Path("config.json")
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load config: {str(e)}")
@@ -93,8 +93,8 @@ def save_config_json(config_data: Dict) -> bool:
     """Save configuration to config.json"""
     config_path = Path("config.json")
     try:
-        with open(config_path, 'w') as f:
-            json.dump(config_data, f, indent=2)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save config: {str(e)}")
