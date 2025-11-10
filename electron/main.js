@@ -195,30 +195,41 @@ async function startBackend() {
       env.PYTHONPATH = projectRoot;
     }
 
-    // Convert paths to use backslashes on Windows
-    const normalizedProjectRoot = process.platform === 'win32'
-      ? projectRoot.replace(/\//g, '\\\\')
-      : projectRoot;
-    const normalizedWorkingDir = process.platform === 'win32'
-      ? workingDir.replace(/\//g, '\\\\')
-      : workingDir;
-    const normalizedSrcPath = process.platform === 'win32'
-      ? path.join(projectRoot, 'src').replace(/\//g, '\\\\')
-      : path.join(projectRoot, 'src');
+    // Create a startup script file to avoid command-line escaping issues
+    let uvicornArgs;
+    let startupScriptPath;
 
-    // For packaged app, we need to change to project root first, then back to userData
-    // This ensures Python can find the modules
-    const uvicornArgs = app.isPackaged
-      ? [
-          '-c',
-          `import sys; sys.path.insert(0, '${normalizedProjectRoot}'); sys.path.insert(0, '${normalizedSrcPath}'); import os; os.chdir('${normalizedWorkingDir}'); from uvicorn import run; run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})`
-        ]
-      : [
-          '-m', 'uvicorn',
-          'backend.main:app',
-          '--host', '0.0.0.0',
-          '--port', BACKEND_PORT.toString()
-        ];
+    if (app.isPackaged) {
+      // Write Python startup script to temp file
+      startupScriptPath = path.join(workingDir, 'start_backend.py');
+      const startupScript = `import sys
+import os
+
+# Add paths to Python path
+sys.path.insert(0, r'${projectRoot}')
+sys.path.insert(0, r'${path.join(projectRoot, 'src')}')
+
+# Change to working directory
+os.chdir(r'${workingDir}')
+
+# Start uvicorn
+from uvicorn import run
+run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
+`;
+
+      fs.writeFileSync(startupScriptPath, startupScript, 'utf8');
+      console.log('Created startup script:', startupScriptPath);
+      logStream.write(`Created startup script: ${startupScriptPath}\n`);
+
+      uvicornArgs = [startupScriptPath];
+    } else {
+      uvicornArgs = [
+        '-m', 'uvicorn',
+        'backend.main:app',
+        '--host', '0.0.0.0',
+        '--port', BACKEND_PORT.toString()
+      ];
+    }
 
     console.log('Starting backend with args:', uvicornArgs);
     logStream.write(`Starting backend...\n`);
