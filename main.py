@@ -45,11 +45,11 @@ def move_processed_file(pdf_path: Path, processed_dir: Path) -> bool:
 
         # Move file
         shutil.move(str(pdf_path), str(dest_path))
-        print(f"📦 Moved {pdf_path.name} → {processed_dir.name}/")
+        print(f"[MOVE] Moved {pdf_path.name} → {processed_dir.name}/")
         return True
 
     except Exception as e:
-        print(f"⚠️  Failed to move {pdf_path.name}: {e}")
+        print(f"[WARN]  Failed to move {pdf_path.name}: {e}")
         return False
 
 
@@ -78,36 +78,36 @@ def run_pipeline():
         'failed_files': [],
         'moved_files': [],
         'total_rows_written': 0,
-        'variance_counts': {'🟢': 0, '🟡': 0, '🔴': 0},
+        'variance_counts': {'GREEN': 0, 'YELLOW': 0, 'RED': 0},
         'sheet_url': '',
         'error': None
     }
 
     # Step 1: Load Configuration
-    print("📋 Loading configuration...")
+    print("[CONFIG] Loading configuration...")
     try:
         config = ConfigLoader()
-        print("✅ Configuration loaded successfully\n")
+        print("[OK] Configuration loaded successfully\n")
     except Exception as e:
-        print(f"❌ Configuration error: {e}")
+        print(f"[ERROR] Configuration error: {e}")
         results['error'] = f"Configuration error: {e}"
         return results
 
     # Step 2: Initialize Azure Extractor
-    print("🔗 Connecting to Azure Form Recognizer...")
+    print("[CONNECT] Connecting to Azure Form Recognizer...")
     try:
         extractor = InvoiceExtractor(
             endpoint=config.get_azure_endpoint(),
             key=config.get_azure_key()
         )
-        print("✅ Connected to Azure Form Recognizer\n")
+        print("[OK] Connected to Azure Form Recognizer\n")
     except Exception as e:
-        print(f"❌ Azure connection failed: {e}")
+        print(f"[ERROR] Azure connection failed: {e}")
         results['error'] = f"Azure connection failed: {e}"
         return results
 
     # Step 3: Initialize Google Sheets Writer
-    print("🔗 Connecting to Google Sheets...")
+    print("[CONNECT] Connecting to Google Sheets...")
     try:
         gs_config = config.config.get('google_sheets', {})
         writer = SheetsWriter(
@@ -117,13 +117,13 @@ def run_pipeline():
             sheet_name=gs_config.get('sheet_name', 'Pricing Data')
         )
         writer.authenticate()
-        print("✅ Connected to Google Sheets\n")
+        print("[OK] Connected to Google Sheets\n")
 
         # Build sheet URL
         sheet_id = gs_config.get('sheet_id', '')
         results['sheet_url'] = f"https://docs.google.com/spreadsheets/d/{sheet_id}"
     except Exception as e:
-        print(f"❌ Google Sheets connection failed: {e}")
+        print(f"[ERROR] Google Sheets connection failed: {e}")
         print("\nTroubleshooting:")
         print("1. Ensure credentials.json exists in project root")
         print("2. Verify Google Sheet ID in config.json")
@@ -136,13 +136,13 @@ def run_pipeline():
     pdf_files = config.list_new_invoices()
 
     if not pdf_files:
-        print("⚠️  No PDF files found in Invoices/new/")
+        print("[WARN]  No PDF files found in Invoices/new/")
         print("   Please add invoice PDFs to process.")
         results['error'] = "No PDF files found in Invoices/new/"
         return results
 
     results['total_files'] = len(pdf_files)
-    print(f"✅ Found {len(pdf_files)} PDF(s) to process\n")
+    print(f"[OK] Found {len(pdf_files)} PDF(s) to process\n")
 
     # Step 4: Initialize Variance Engine
     print("🧠 Initializing Variance Intelligence Engine...")
@@ -153,9 +153,9 @@ def run_pipeline():
             rolling_window=3,
             supplier_window=30
         )
-        print("✅ Variance Engine initialized\n")
+        print("[OK] Variance Engine initialized\n")
     except Exception as e:
-        print(f"❌ Variance Engine initialization failed: {e}")
+        print(f"[ERROR] Variance Engine initialization failed: {e}")
         results['error'] = f"Variance Engine initialization failed: {e}"
         return results
 
@@ -173,7 +173,7 @@ def run_pipeline():
             df = extractor.extract_invoice(pdf_path)
 
             if df.empty:
-                print(f"⚠️  No data extracted from {pdf_path.name}")
+                print(f"[WARN]  No data extracted from {pdf_path.name}")
                 results['failed_files'].append((pdf_path.name, "No data extracted"))
                 continue
 
@@ -198,19 +198,19 @@ def run_pipeline():
             if rows_written > 0:
                 results['total_rows_written'] += rows_written
                 results['successful_files'].append(pdf_path.name)
-                print(f"✅ {pdf_path.name} processed successfully")
+                print(f"[OK] {pdf_path.name} processed successfully")
 
                 # Move file to processed directory
                 if move_processed_file(pdf_path, processed_dir):
                     results['moved_files'].append(pdf_path.name)
             else:
                 results['failed_files'].append((pdf_path.name, "Failed to write to sheet"))
-                print(f"❌ Skipped moving {pdf_path.name} due to processing failure")
+                print(f"[ERROR] Skipped moving {pdf_path.name} due to processing failure")
 
         except Exception as e:
-            print(f"❌ Error processing {pdf_path.name}: {e}")
+            print(f"[ERROR] Error processing {pdf_path.name}: {e}")
             results['failed_files'].append((pdf_path.name, str(e)))
-            print(f"❌ Skipped moving {pdf_path.name} due to processing failure")
+            print(f"[ERROR] Skipped moving {pdf_path.name} due to processing failure")
             continue
 
     # Step 7: Summary
@@ -221,16 +221,16 @@ def run_pipeline():
     print(f"Successful: {len(results['successful_files'])}")
     print(f"Failed: {len(results['failed_files'])}")
     print(f"Total rows written to Google Sheets: {results['total_rows_written']}")
-    print(f"📦 Files moved to archive: {len(results['moved_files'])} / {results['total_files']}")
+    print(f"[MOVE] Files moved to archive: {len(results['moved_files'])} / {results['total_files']}")
 
     if results['successful_files']:
-        print("\n✅ Successfully processed:")
+        print("\n[OK] Successfully processed:")
         for filename in results['successful_files']:
             moved_status = "→ Archived" if filename in results['moved_files'] else ""
             print(f"   - {filename} {moved_status}")
 
     if results['failed_files']:
-        print("\n❌ Failed to process (kept in Invoices/new/):")
+        print("\n[ERROR] Failed to process (kept in Invoices/new/):")
         for filename, error in results['failed_files']:
             print(f"   - {filename}: {error}")
 
@@ -258,10 +258,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️  Processing interrupted by user")
+        print("\n\n[WARN]  Processing interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\n[ERROR] Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

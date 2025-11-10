@@ -97,32 +97,32 @@ class SheetsWriter:
         if self.token_file.exists():
             try:
                 creds = Credentials.from_authorized_user_file(str(self.token_file), SCOPES)
-                print("📋 Using existing authentication token")
+                print("[CONFIG] Using existing authentication token")
             except Exception as e:
-                print(f"⚠️  Existing token invalid: {e}")
+                print(f"[WARN]  Existing token invalid: {e}")
                 creds = None
 
         # If no valid credentials, authenticate
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                print("🔄 Refreshing expired authentication token...")
+                print("[REFRESH] Refreshing expired authentication token...")
                 try:
                     creds.refresh(Request())
-                    print("✅ Token refreshed successfully")
+                    print("[OK] Token refreshed successfully")
                 except Exception as e:
-                    print(f"⚠️  Token refresh failed: {e}")
+                    print(f"[WARN]  Token refresh failed: {e}")
                     creds = None
 
             # If still no valid creds, run OAuth flow
             if not creds:
-                print("🔐 Starting OAuth authentication flow...")
+                print("[AUTH] Starting OAuth authentication flow...")
                 print("   A browser window will open for Google authentication.")
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(
                         str(self.credentials_file), SCOPES
                     )
                     creds = flow.run_local_server(port=0)
-                    print("✅ Authentication successful")
+                    print("[OK] Authentication successful")
                 except Exception as e:
                     raise Exception(f"OAuth authentication failed: {e}")
 
@@ -130,14 +130,14 @@ class SheetsWriter:
             try:
                 with open(self.token_file, 'w', encoding='utf-8') as token:
                     token.write(creds.to_json())
-                print(f"💾 Authentication token saved to {self.token_file}")
+                print(f"[SAVE] Authentication token saved to {self.token_file}")
             except Exception as e:
-                print(f"⚠️  Could not save token: {e}")
+                print(f"[WARN]  Could not save token: {e}")
 
         # Build Sheets API service
         try:
             self.service = build('sheets', 'v4', credentials=creds)
-            print("✅ Connected to Google Sheets API")
+            print("[OK] Connected to Google Sheets API")
         except Exception as e:
             raise Exception(f"Failed to connect to Google Sheets API: {e}")
 
@@ -219,23 +219,23 @@ class SheetsWriter:
 
             # If sheet is empty, write headers
             if not existing_headers:
-                print(f"📝 Sheet is empty. Writing canonical headers...")
+                print(f"[WRITE] Sheet is empty. Writing canonical headers...")
                 self.service.spreadsheets().values().update(
                     spreadsheetId=self.sheet_id,
                     range=f"{self.sheet_name}!A1",
                     valueInputOption='RAW',
                     body={'values': [COLUMNS]}
                 ).execute()
-                print(f"✅ Headers written: {COLUMNS}")
+                print(f"[OK] Headers written: {COLUMNS}")
                 return True, COLUMNS
 
             # Verify headers match exactly
             headers_match = existing_headers == COLUMNS
 
             if headers_match:
-                print(f"✅ Header validation: OK")
+                print(f"[OK] Header validation: OK")
             else:
-                print(f"❌ Header validation: MISMATCH")
+                print(f"[ERROR] Header validation: MISMATCH")
                 print(f"   Expected: {COLUMNS}")
                 print(f"   Found:    {existing_headers}")
 
@@ -244,11 +244,11 @@ class SheetsWriter:
         except HttpError as e:
             if e.resp.status == 404:
                 raise Exception(
-                    f"❌ Sheet tab '{self.sheet_name}' not found. "
+                    f"[ERROR] Sheet tab '{self.sheet_name}' not found. "
                     f"Please create a tab named '{self.sheet_name}' in your Google Sheet."
                 )
             else:
-                raise Exception(f"❌ Failed to access sheet: {e}")
+                raise Exception(f"[ERROR] Failed to access sheet: {e}")
 
     def _get_next_row(self) -> int:
         """
@@ -270,17 +270,17 @@ class SheetsWriter:
             existing_values = result.get('values', [])
             next_row = len(existing_values) + 1
 
-            print(f"📍 Next available row: A{next_row}")
+            print(f"[ROW] Next available row: A{next_row}")
             return next_row
 
         except HttpError as e:
             if e.resp.status == 404:
                 raise Exception(
-                    f"❌ Sheet tab '{self.sheet_name}' not found. "
+                    f"[ERROR] Sheet tab '{self.sheet_name}' not found. "
                     f"Please create a tab named '{self.sheet_name}' in your Google Sheet."
                 )
             else:
-                raise Exception(f"❌ Failed to detect next row: {e}")
+                raise Exception(f"[ERROR] Failed to detect next row: {e}")
 
     def append_data(self, df: pd.DataFrame) -> int:
         """
@@ -303,11 +303,11 @@ class SheetsWriter:
             Exception: If append operation fails or headers mismatch
         """
         if df.empty:
-            print("⚠️  No data to append (DataFrame is empty)")
+            print("[WARN]  No data to append (DataFrame is empty)")
             return 0
 
         # Step 1: Sanitize DataFrame
-        print(f"🧹 Sanitizing {len(df)} row(s)...")
+        print(f"[CLEAN] Sanitizing {len(df)} row(s)...")
         df_clean = self._sanitize_dataframe(df)
 
         # Step 2: Verify headers
@@ -315,7 +315,7 @@ class SheetsWriter:
 
         if not headers_match:
             raise Exception(
-                f"❌ Cannot append data: Header mismatch!\n"
+                f"[ERROR] Cannot append data: Header mismatch!\n"
                 f"   Expected: {COLUMNS}\n"
                 f"   Found:    {existing_headers}\n"
                 f"   Please fix the Google Sheet headers to match exactly."
@@ -340,28 +340,28 @@ class SheetsWriter:
             ).execute()
 
             rows_written = result.get('updatedRows', 0)
-            print(f"✅ Write complete: {rows_written} row(s) appended")
+            print(f"[OK] Write complete: {rows_written} row(s) appended")
 
             return rows_written
 
         except HttpError as e:
             if e.resp.status == 429:
                 raise Exception(
-                    "❌ Google Sheets API quota exceeded. Please try again later or "
+                    "[ERROR] Google Sheets API quota exceeded. Please try again later or "
                     "increase your API quota in Google Cloud Console."
                 )
             elif e.resp.status == 403:
                 raise Exception(
-                    "❌ Permission denied. Please ensure you have edit access to the "
+                    "[ERROR] Permission denied. Please ensure you have edit access to the "
                     "Google Sheet and that the Sheets API is enabled."
                 )
             elif e.resp.status == 404:
                 raise Exception(
-                    f"❌ Sheet tab '{self.sheet_name}' not found. "
+                    f"[ERROR] Sheet tab '{self.sheet_name}' not found. "
                     f"Please verify the sheet name in config.json."
                 )
             else:
-                raise Exception(f"❌ Failed to append data: {e}")
+                raise Exception(f"[ERROR] Failed to append data: {e}")
 
     def write_dataframe(self, df: pd.DataFrame) -> int:
         """
@@ -378,7 +378,7 @@ class SheetsWriter:
             Exception: If any step fails
         """
         if df.empty:
-            print("⚠️  No data to write (DataFrame is empty)")
+            print("[WARN]  No data to write (DataFrame is empty)")
             return 0
 
         # Authenticate if not already authenticated
@@ -404,7 +404,7 @@ def test_sheets_writer(config_loader):
     try:
         # Get Google Sheets config
         if 'google_sheets' not in config_loader.config:
-            print("❌ Google Sheets configuration not found in config.json")
+            print("[ERROR] Google Sheets configuration not found in config.json")
             return False
 
         gs_config = config_loader.config['google_sheets']
@@ -446,18 +446,18 @@ def test_sheets_writer(config_loader):
 
         print("\n" + "=" * 80)
         if rows > 0:
-            print(f"✅ TEST PASSED - {rows} row(s) written to Google Sheet")
+            print(f"[OK] TEST PASSED - {rows} row(s) written to Google Sheet")
             print(f"   Sheet ID: {gs_config['sheet_id']}")
             print(f"   Sheet Name: {gs_config['sheet_name']}")
             print(f"   Column Order: {COLUMNS}")
         else:
-            print("❌ TEST FAILED - No rows written")
+            print("[ERROR] TEST FAILED - No rows written")
         print("=" * 80)
 
         return rows > 0
 
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n[ERROR] Test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -478,7 +478,7 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 80)
     if success:
-        print("✅ Google Sheets integration ready")
+        print("[OK] Google Sheets integration ready")
     else:
-        print("❌ Google Sheets integration failed - please review errors above")
+        print("[ERROR] Google Sheets integration failed - please review errors above")
     print("=" * 80)

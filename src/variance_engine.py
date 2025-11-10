@@ -57,7 +57,7 @@ class VarianceEngine:
             values = result.get('values', [])
 
             if not values:
-                print("📊 No historical data found in sheet (empty sheet)")
+                print("[DATA] No historical data found in sheet (empty sheet)")
                 return pd.DataFrame()
 
             # First row is headers
@@ -68,7 +68,7 @@ class VarianceEngine:
             print(f"   Found {len(data_rows)} data rows")
 
             if not data_rows:
-                print("📊 Sheet has headers but no data rows")
+                print("[DATA] Sheet has headers but no data rows")
                 return pd.DataFrame(columns=headers)
 
             # Ensure all rows have same number of columns as headers
@@ -81,7 +81,7 @@ class VarianceEngine:
                 # Trim long rows to match headers
                 elif len(row) > len(headers):
                     if idx == 0:  # Only log once
-                        print(f"   ⚠️  Data rows have {original_len} columns, trimming to {len(headers)}")
+                        print(f"   [WARN]  Data rows have {original_len} columns, trimming to {len(headers)}")
                     row = list(row[:len(headers)])
                 else:
                     row = list(row)
@@ -91,7 +91,7 @@ class VarianceEngine:
             try:
                 df = pd.DataFrame(padded_rows, columns=headers)
             except Exception as e:
-                print(f"   ❌ DataFrame creation error: {e}")
+                print(f"   [ERROR] DataFrame creation error: {e}")
                 print(f"   Headers ({len(headers)}): {headers}")
                 print(f"   First row ({len(padded_rows[0])}): {padded_rows[0]}")
                 raise
@@ -107,7 +107,7 @@ class VarianceEngine:
             if 'processed_date' in df.columns:
                 df['processed_date'] = pd.to_datetime(df['processed_date'], errors='coerce')
 
-            print(f"✅ Loaded {len(df)} historical rows from Google Sheet")
+            print(f"[OK] Loaded {len(df)} historical rows from Google Sheet")
 
             return df
 
@@ -127,7 +127,7 @@ class VarianceEngine:
             new_df with rolling statistics added
         """
         if historical_df.empty:
-            print("⚠️  No historical data for rolling statistics")
+            print("[WARN]  No historical data for rolling statistics")
             new_df['rolling_avg_cost'] = None
             new_df['rolling_median_cost'] = None
             new_df['last_cost'] = None
@@ -179,7 +179,7 @@ class VarianceEngine:
         new_df = pd.concat([new_df.reset_index(drop=True), stats_df], axis=1)
 
         skus_with_history = new_df['rolling_avg_cost'].notna().sum()
-        print(f"✅ Calculated rolling averages for {skus_with_history} SKU(s)")
+        print(f"[OK] Calculated rolling averages for {skus_with_history} SKU(s)")
 
         return new_df
 
@@ -196,7 +196,7 @@ class VarianceEngine:
             new_df with supplier baseline added
         """
         if historical_df.empty:
-            print("⚠️  No historical data for supplier baselines")
+            print("[WARN]  No historical data for supplier baselines")
             new_df['supplier_baseline_%'] = None
             return new_df
 
@@ -228,7 +228,7 @@ class VarianceEngine:
         new_df['supplier_baseline_%'] = supplier_baselines
 
         suppliers_with_baseline = new_df['supplier_baseline_%'].notna().sum()
-        print(f"✅ Applied supplier baselines for {suppliers_with_baseline} row(s)")
+        print(f"[OK] Applied supplier baselines for {suppliers_with_baseline} row(s)")
 
         return new_df
 
@@ -285,7 +285,7 @@ class VarianceEngine:
         new_df['impact_$'] = impacts_dollar
         new_df['_impact_score'] = impact_scores  # Internal use for sorting
 
-        print(f"✅ Calculated variance and impact scores for {len(new_df)} row(s)")
+        print(f"[OK] Calculated variance and impact scores for {len(new_df)} row(s)")
 
         return new_df
 
@@ -312,17 +312,17 @@ class VarianceEngine:
             abs_variance = abs(variance)
 
             if abs_variance <= self.green_threshold:
-                flags.append('🟢')
+                flags.append('GREEN')
             elif abs_variance <= self.yellow_threshold:
-                flags.append('🟡')
+                flags.append('YELLOW')
             else:
-                flags.append('🔴')
+                flags.append('RED')
 
         new_df['variance_flag'] = flags
 
         # Count flags
         flag_counts = new_df['variance_flag'].value_counts()
-        print(f"✅ Assigned flags: ", end="")
+        print(f"[OK] Assigned flags: ", end="")
         for flag, count in flag_counts.items():
             if flag:  # Skip empty strings
                 print(f"{flag} {count} ", end="")
@@ -341,7 +341,7 @@ class VarianceEngine:
             new_df sorted by priority
         """
         # Identify red flags
-        red_flags = new_df[new_df['variance_flag'] == '🔴'].copy()
+        red_flags = new_df[new_df['variance_flag'] == 'RED'].copy()
 
         if not red_flags.empty:
             # Sort by impact_$ descending
@@ -356,7 +356,7 @@ class VarianceEngine:
                 print(f"   SKU {sku}: {sign}{variance}%, ${sign}{impact:.2f} impact")
 
             # Rebuild dataframe with red flags first
-            other_flags = new_df[new_df['variance_flag'] != '🔴']
+            other_flags = new_df[new_df['variance_flag'] != 'RED']
             new_df = pd.concat([red_flags, other_flags], ignore_index=True)
 
         # Drop internal impact_score column
@@ -398,7 +398,7 @@ class VarianceEngine:
         print("=" * 80)
 
         # Step 1: Load historical data
-        print("\n📊 Loading historical data from Google Sheets...")
+        print("\n[DATA] Loading historical data from Google Sheets...")
         historical_df = self.load_historical_data(sheets_service, sheet_id, sheet_name)
 
         # Step 2: Calculate rolling statistics
@@ -422,7 +422,7 @@ class VarianceEngine:
         new_df = self.prioritize_high_impact(new_df)
 
         print("\n" + "=" * 80)
-        print(f"✅ Variance analysis complete: {len(new_df)} annotated rows ready")
+        print(f"[OK] Variance analysis complete: {len(new_df)} annotated rows ready")
         print("=" * 80 + "\n")
 
         return new_df
@@ -482,7 +482,7 @@ def test_variance_engine():
     print(new_data[['vendor_sku', 'unit_cost', 'variance_%', 'variance_flag',
                     'supplier_baseline_%', 'impact_$']].to_string(index=False))
 
-    print("\n✅ Test complete")
+    print("\n[OK] Test complete")
 
 
 if __name__ == "__main__":

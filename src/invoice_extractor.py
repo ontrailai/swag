@@ -77,10 +77,10 @@ class InvoiceExtractor:
             # Convert to DataFrame
             if line_items:
                 df = pd.DataFrame(line_items)
-                print(f"  ✅ Extracted {len(df)} line items")
+                print(f"  [OK] Extracted {len(df)} line items")
                 return df
             else:
-                print("  ⚠️ No line items found in invoice")
+                print("  [WARN] No line items found in invoice")
                 return pd.DataFrame()
 
         except Exception as e:
@@ -248,18 +248,18 @@ def test_invoice_extractor(config_loader):
         # Get first PDF from new invoices
         pdf_files = config_loader.list_new_invoices()
         if not pdf_files:
-            print("⚠️ No PDF files found in Invoices/new")
+            print("[WARN] No PDF files found in Invoices/new")
             print("   Please add a test invoice PDF to continue.")
             return None
 
         # Process first PDF
         test_pdf = pdf_files[0]
-        print(f"\n📋 Testing extraction with: {test_pdf.name}\n")
+        print(f"\n[CONFIG] Testing extraction with: {test_pdf.name}\n")
 
         df = extractor.extract_invoice(test_pdf)
 
         if df.empty:
-            print("\n❌ No data extracted from invoice")
+            print("\n[ERROR] No data extracted from invoice")
             return None
 
         # Display results
@@ -268,12 +268,12 @@ def test_invoice_extractor(config_loader):
         print("=" * 80)
         print(df.to_string(index=False))
         print("=" * 80)
-        print(f"\n✅ Successfully extracted {len(df)} line items")
+        print(f"\n[OK] Successfully extracted {len(df)} line items")
 
         return df
 
     except Exception as e:
-        print(f"\n❌ Extraction test failed: {e}")
+        print(f"\n[ERROR] Extraction test failed: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -294,7 +294,7 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 80)
     if result_df is not None:
-        print("✅ STEP 2 COMPLETE - Ready to proceed to Step 3")
+        print("[OK] STEP 2 COMPLETE - Ready to proceed to Step 3")
     else:
-        print("❌ STEP 2 FAILED - Please review errors above")
+        print("[ERROR] STEP 2 FAILED - Please review errors above")
     print("=" * 80)

@@ -77,7 +77,7 @@ class ConfigLoader:
         if 'google_sheets' in self.config:
             gs = self.config['google_sheets']
             if not gs.get('sheet_id') or gs['sheet_id'] == "YOUR_GOOGLE_SHEET_ID_HERE":
-                print("⚠️  Warning: Google Sheet ID not configured in config.json")
+                print("[WARN]  Warning: Google Sheet ID not configured in config.json")
 
     def get_azure_endpoint(self) -> str:
         """Get Azure Form Recognizer endpoint."""
@@ -147,25 +147,25 @@ def test_config_loader():
     """Test configuration loader functionality."""
     try:
         config = ConfigLoader()
-        print("✅ Configuration loaded successfully")
+        print("[OK] Configuration loaded successfully")
         print(f"  Azure Endpoint: {config.get_azure_endpoint()[:30]}...")
         print(f"  Invoices Path: {config.get_path('invoices_new')}")
         print(f"  Green Threshold: {config.get_variance_threshold('green')}%")
 
         # Ensure directories exist
         config.ensure_directories_exist()
-        print("✅ Directories verified/created")
+        print("[OK] Directories verified/created")
 
         # List PDFs in new invoices folder
         pdf_files = config.list_new_invoices()
-        print(f"✅ Found {len(pdf_files)} PDF(s) in Invoices/new")
+        print(f"[OK] Found {len(pdf_files)} PDF(s) in Invoices/new")
         for pdf in pdf_files:
             print(f"  - {pdf.name}")
 
         return True
 
     except Exception as e:
-        print(f"❌ Configuration Error: {e}")
+        print(f"[ERROR] Configuration Error: {e}")
         return False
 
 

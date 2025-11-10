@@ -313,11 +313,11 @@ async def get_variance_summary():
 
         for item in recent_data:
             flag = item.get('variance_flag', '')
-            if flag == '🟢':
+            if flag == 'GREEN':
                 variance_counts['green'] += 1
-            elif flag == '🟡':
+            elif flag == 'YELLOW':
                 variance_counts['yellow'] += 1
-            elif flag == '🔴':
+            elif flag == 'RED':
                 variance_counts['red'] += 1
 
         return {
@@ -440,11 +440,11 @@ async def get_dashboard_stats():
         for item in recent_data:
             # Count flags
             flag = item.get('variance_flag', '')
-            if flag == '🟢':
+            if flag == 'GREEN':
                 variance_counts['green'] += 1
-            elif flag == '🟡':
+            elif flag == 'YELLOW':
                 variance_counts['yellow'] += 1
-            elif flag == '🔴':
+            elif flag == 'RED':
                 variance_counts['red'] += 1
 
             # Calculate impact cost
