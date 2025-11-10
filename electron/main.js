@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen } = require('electron');
+const { app, BrowserWindow, screen, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const waitOn = require('wait-on');
@@ -29,6 +29,45 @@ function checkBackendHealth() {
       resolve(false);
     });
   });
+}
+
+// Check if Python is installed
+function checkPythonInstalled(pythonCmd) {
+  return new Promise((resolve) => {
+    const testProcess = spawn(pythonCmd, ['--version'], {
+      stdio: 'pipe',
+      shell: true
+    });
+
+    let output = '';
+    testProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    testProcess.stderr.on('data', (data) => {
+      output += data.toString();
+    });
+
+    testProcess.on('close', (code) => {
+      console.log('Python check output:', output);
+      resolve(code === 0 && output.toLowerCase().includes('python'));
+    });
+
+    testProcess.on('error', () => {
+      resolve(false);
+    });
+
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      testProcess.kill();
+      resolve(false);
+    }, 5000);
+  });
+}
+
+// Show error dialog to user
+function showErrorDialog(title, message) {
+  dialog.showErrorBox(title, message);
 }
 
 // Set up user data directory with config files
@@ -99,7 +138,7 @@ function setupDataDirectory() {
 
 // Start FastAPI backend
 async function startBackend() {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     console.log('Starting FastAPI backend...');
 
     // Determine project root - different for packaged vs development
@@ -126,21 +165,53 @@ async function startBackend() {
       pythonPath = 'python3';
     }
 
+    // Check if Python is installed
+    console.log('Checking Python installation...');
+    const pythonInstalled = await checkPythonInstalled(pythonPath);
+    if (!pythonInstalled) {
+      const errorMsg = `Python is not installed or not found in system PATH.\n\n` +
+        `Please install Python 3.8 or newer from:\nhttps://www.python.org/downloads/\n\n` +
+        `Make sure to check "Add Python to PATH" during installation.`;
+      showErrorDialog('Python Not Found', errorMsg);
+      reject(new Error('Python not installed'));
+      return;
+    }
+    console.log('Python found!');
+
+    // Create log file for debugging
+    const logPath = path.join(workingDir, 'backend-startup.log');
+    const logStream = fs.createWriteStream(logPath, { flags: 'w' });
+    console.log('Log file:', logPath);
+
     // Set PYTHONPATH to include project root modules
     const env = { ...process.env };
+    const pathSep = process.platform === 'win32' ? ';' : ':';
+
     if (app.isPackaged) {
       // For packaged app, add both project root and src to PYTHONPATH
-      env.PYTHONPATH = `${projectRoot}:${path.join(projectRoot, 'src')}${env.PYTHONPATH ? ':' + env.PYTHONPATH : ''}`;
+      const pythonPaths = [projectRoot, path.join(projectRoot, 'src')];
+      env.PYTHONPATH = pythonPaths.join(pathSep) + (env.PYTHONPATH ? pathSep + env.PYTHONPATH : '');
     } else {
       env.PYTHONPATH = projectRoot;
     }
+
+    // Convert paths to use backslashes on Windows
+    const normalizedProjectRoot = process.platform === 'win32'
+      ? projectRoot.replace(/\//g, '\\\\')
+      : projectRoot;
+    const normalizedWorkingDir = process.platform === 'win32'
+      ? workingDir.replace(/\//g, '\\\\')
+      : workingDir;
+    const normalizedSrcPath = process.platform === 'win32'
+      ? path.join(projectRoot, 'src').replace(/\//g, '\\\\')
+      : path.join(projectRoot, 'src');
 
     // For packaged app, we need to change to project root first, then back to userData
     // This ensures Python can find the modules
     const uvicornArgs = app.isPackaged
       ? [
           '-c',
-          `import sys; sys.path.insert(0, '${projectRoot}'); sys.path.insert(0, '${path.join(projectRoot, 'src')}'); import os; os.chdir('${workingDir}'); from uvicorn import run; run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})`
+          `import sys; sys.path.insert(0, '${normalizedProjectRoot}'); sys.path.insert(0, '${normalizedSrcPath}'); import os; os.chdir('${normalizedWorkingDir}'); from uvicorn import run; run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})`
         ]
       : [
           '-m', 'uvicorn',
@@ -149,40 +220,81 @@ async function startBackend() {
           '--port', BACKEND_PORT.toString()
         ];
 
+    console.log('Starting backend with args:', uvicornArgs);
+    logStream.write(`Starting backend...\n`);
+    logStream.write(`Python: ${pythonPath}\n`);
+    logStream.write(`Project root: ${projectRoot}\n`);
+    logStream.write(`Working dir: ${workingDir}\n`);
+    logStream.write(`Args: ${JSON.stringify(uvicornArgs)}\n\n`);
+
     backendProcess = spawn(pythonPath, uvicornArgs, {
       cwd: app.isPackaged ? projectRoot : workingDir,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: env
+      env: env,
+      shell: process.platform === 'win32'
     });
 
     backendProcess.stdout.on('data', (data) => {
-      console.log(`Backend: ${data}`);
+      const msg = data.toString();
+      console.log(`Backend: ${msg}`);
+      logStream.write(`STDOUT: ${msg}\n`);
     });
 
     backendProcess.stderr.on('data', (data) => {
-      console.error(`Backend Error: ${data}`);
+      const msg = data.toString();
+      console.error(`Backend Error: ${msg}`);
+      logStream.write(`STDERR: ${msg}\n`);
     });
 
     backendProcess.on('error', (error) => {
       console.error('Failed to start backend:', error);
+      logStream.write(`ERROR: ${error.message}\n`);
+      logStream.end();
+
+      showErrorDialog(
+        'Backend Startup Failed',
+        `Failed to start the application backend.\n\n` +
+        `Error: ${error.message}\n\n` +
+        `Check the log file at:\n${logPath}`
+      );
       reject(error);
     });
 
+    backendProcess.on('exit', (code, signal) => {
+      logStream.write(`Process exited with code ${code}, signal ${signal}\n`);
+      logStream.end();
+    });
+
     // Wait for backend to be ready
+    let attempts = 0;
+    const maxAttempts = 60; // 30 seconds (60 * 500ms)
+
     const checkInterval = setInterval(async () => {
+      attempts++;
       const isReady = await checkBackendHealth();
       if (isReady) {
         clearInterval(checkInterval);
         console.log('Backend is ready!');
+        logStream.write('Backend is ready!\n');
+        logStream.end();
         resolve();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        logStream.write('Backend startup timeout\n');
+        logStream.end();
+
+        showErrorDialog(
+          'Backend Startup Timeout',
+          `The application backend failed to start within 30 seconds.\n\n` +
+          `This may be due to:\n` +
+          `- Missing Python packages (pip install fastapi uvicorn)\n` +
+          `- Port 8000 already in use\n` +
+          `- Firewall blocking the connection\n\n` +
+          `Check the log file at:\n${logPath}`
+        );
+        reject(new Error('Backend startup timeout'));
       }
     }, 500);
-
-    // Timeout after 30 seconds
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      reject(new Error('Backend startup timeout'));
-    }, 30000);
   });
 }
 
