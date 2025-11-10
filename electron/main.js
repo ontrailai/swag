@@ -187,6 +187,12 @@ async function startBackend() {
     const env = { ...process.env };
     const pathSep = process.platform === 'win32' ? ';' : ':';
 
+    // Force UTF-8 encoding on Windows
+    if (process.platform === 'win32') {
+      env.PYTHONIOENCODING = 'utf-8';
+      env.PYTHONUTF8 = '1';
+    }
+
     if (app.isPackaged) {
       // For packaged app, add both project root and src to PYTHONPATH
       const pythonPaths = [projectRoot, path.join(projectRoot, 'src')];
@@ -206,12 +212,12 @@ async function startBackend() {
 import sys
 import os
 
-# Force UTF-8 encoding on Windows to handle Unicode characters
+# Force UTF-8 encoding on Windows - MUST be done before any imports
 if sys.platform == 'win32':
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
-    os.environ['PYTHONIOENCODING'] = 'utf-8'
+    # Reconfigure stdout and stderr with UTF-8 encoding and error handling
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
 # Add paths to Python path
 sys.path.insert(0, r'${projectRoot}')
