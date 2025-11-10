@@ -54,7 +54,7 @@ export const History: React.FC = () => {
                 <div className="flex gap-4 mt-1 text-sm text-swag-skull-white/70">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    {new Date(file.modified).toLocaleString()}
+                    {file.modified ? new Date(file.modified).toLocaleString() : 'N/A'}
                   </div>
                   <div className="flex items-center gap-1">
                     <HardDrive className="w-4 h-4" />
