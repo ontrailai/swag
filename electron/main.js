@@ -221,7 +221,10 @@ run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
       console.log('Created startup script:', startupScriptPath);
       logStream.write(`Created startup script: ${startupScriptPath}\n`);
 
-      uvicornArgs = [startupScriptPath];
+      // Quote the path to handle spaces in Windows paths
+      uvicornArgs = process.platform === 'win32'
+        ? [`"${startupScriptPath}"`]
+        : [startupScriptPath];
     } else {
       uvicornArgs = [
         '-m', 'uvicorn',
