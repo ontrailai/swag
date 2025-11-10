@@ -229,10 +229,15 @@ run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
       console.log('Created startup script:', startupScriptPath);
       logStream.write(`Created startup script: ${startupScriptPath}\n`);
 
-      // Quote the path to handle spaces in Windows paths
-      uvicornArgs = process.platform === 'win32'
-        ? [`"${startupScriptPath}"`]
-        : [startupScriptPath];
+      // On Windows with shell, pass entire command as string to handle spaces
+      if (process.platform === 'win32') {
+        // Pass the entire command as a single string with shell: true
+        const command = `"${pythonPath}" "${startupScriptPath}"`;
+        uvicornArgs = ['/c', command];
+        pythonPath = 'cmd.exe';
+      } else {
+        uvicornArgs = [startupScriptPath];
+      }
     } else {
       uvicornArgs = [
         '-m', 'uvicorn',
@@ -242,18 +247,17 @@ run('backend.main:app', host='0.0.0.0', port=${BACKEND_PORT})
       ];
     }
 
-    console.log('Starting backend with args:', uvicornArgs);
+    console.log('Starting backend with command:', pythonPath, uvicornArgs);
     logStream.write(`Starting backend...\n`);
     logStream.write(`Python: ${pythonPath}\n`);
     logStream.write(`Project root: ${projectRoot}\n`);
     logStream.write(`Working dir: ${workingDir}\n`);
-    logStream.write(`Args: ${JSON.stringify(uvicornArgs)}\n\n`);
+    logStream.write(`Command: ${pythonPath} ${JSON.stringify(uvicornArgs)}\n\n`);
 
     backendProcess = spawn(pythonPath, uvicornArgs, {
       cwd: app.isPackaged ? projectRoot : workingDir,
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: env,
-      shell: process.platform === 'win32'
+      env: env
     });
 
     backendProcess.stdout.on('data', (data) => {
