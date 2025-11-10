@@ -3,6 +3,18 @@ FastAPI Backend for SWAG Pricing Intelligence Tool
 Production-grade API with CORS support for React frontend
 """
 
+# ============================================================================
+# CRITICAL: Force UTF-8 mode on all Python I/O streams (Windows compatibility)
+# This MUST be at the very top before any other imports
+# ============================================================================
+import sys
+import io
+import os
+
+os.environ["PYTHONUTF8"] = "1"
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding="utf-8", errors="replace")
+sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding="utf-8", errors="replace")
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse

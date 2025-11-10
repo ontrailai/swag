@@ -111,11 +111,13 @@ class InvoiceExtractor:
 
             # Extract vendor/supplier name
             if 'VendorName' in fields and fields['VendorName'].value:
-                metadata['supplier'] = fields['VendorName'].value
+                raw_supplier = str(fields['VendorName'].value)
+                metadata['supplier'] = raw_supplier.encode("utf-8", errors="ignore").decode("utf-8")
 
             # Extract invoice number
             if 'InvoiceId' in fields and fields['InvoiceId'].value:
-                metadata['invoice_number'] = fields['InvoiceId'].value
+                raw_invoice_id = str(fields['InvoiceId'].value)
+                metadata['invoice_number'] = raw_invoice_id.encode("utf-8", errors="ignore").decode("utf-8")
 
             # Extract invoice date
             if 'InvoiceDate' in fields and fields['InvoiceDate'].value:
@@ -192,7 +194,7 @@ class InvoiceExtractor:
 
     def _get_field_value(self, fields: Dict, field_name: str) -> Optional[str]:
         """
-        Safely extract string field value.
+        Safely extract string field value with UTF-8 sanitization.
 
         Args:
             fields: Field dictionary
@@ -202,7 +204,11 @@ class InvoiceExtractor:
             Field value as string, or None if not found
         """
         if field_name in fields and fields[field_name].value:
-            return str(fields[field_name].value)
+            raw_value = str(fields[field_name].value)
+            # Sanitize text: encode to UTF-8 with error handling, then decode
+            # This removes any problematic surrogate pairs or invalid characters
+            cleaned_value = raw_value.encode("utf-8", errors="ignore").decode("utf-8")
+            return cleaned_value
         return None
 
     def _get_numeric_value(self, fields: Dict, field_name: str) -> Optional[float]:
